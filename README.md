@@ -85,5 +85,18 @@ This is the place for you to write reflections:
 ### Mandatory (Subscriber) Reflections
 
 #### Reflection Subscriber-1
+1. Dalam kasus Vec notifikasi di aplikasi receiver, kita menggunakan RwLock (Read-Write Lock) karena alasan efisiensi pada skenario akses data yang tidak seimbang:
+
+Kenapa RwLock? Aplikasi receiver ini kemungkinan besar akan menerima banyak permintaan untuk membaca log (misal: saat user melihat daftar notifikasi di dashboard). RwLock mengizinkan banyak thread untuk membaca (read) data secara bersamaan tanpa saling menunggu, asalkan tidak ada yang sedang menulis.
+
+Kenapa bukan Mutex? Mutex (Mutual Exclusion) jauh lebih kaku; hanya satu thread yang boleh mengakses data, baik itu untuk membaca maupun menulis. Jika kita menggunakan Mutex, maka ketika ada satu orang sedang melihat daftar notifikasi, orang lain (atau sistem yang ingin menambah notifikasi baru) harus mengantre. Hal ini akan menyebabkan bottleneck performa yang tidak perlu pada aplikasi web yang bersifat multi-threaded.
+
+2. Perbedaan mendasar antara Rust dan Java dalam menangani variabel statis terletak pada filosofi Memory Safety dan Data Race Prevention.
+
+Di Java: Variabel statis bisa diubah dengan mudah karena Java menyerahkan tanggung jawab thread-safety sepenuhnya kepada programmer. Jika dua thread mengubah variabel statis secara bersamaan tanpa synchronized, akan terjadi race condition yang sulit dilacak.
+
+Di Rust: Compiler Rust sangat protektif. Mengubah variabel statis global dianggap Unsafe karena variabel tersebut bisa diakses oleh thread mana pun kapan saja. Tanpa sinkronisasi, ini adalah resep bencana bagi keamanan memori.
+
+Kenapa butuh lazy_static? Di Rust, variabel statis harus bisa dievaluasi saat waktu kompilasi (compile-time). Namun, tipe data seperti Vec atau DashMap butuh alokasi memori di heap yang hanya bisa terjadi saat program berjalan (runtime). lazy_static mengizinkan kita menginisialisasi variabel kompleks ini secara "malas" (hanya saat pertama kali diakses) sambil tetap menjamin bahwa proses tersebut aman secara thread-safe.
 
 #### Reflection Subscriber-2
