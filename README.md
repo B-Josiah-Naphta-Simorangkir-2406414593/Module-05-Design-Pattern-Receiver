@@ -100,3 +100,21 @@ Di Rust: Compiler Rust sangat protektif. Mengubah variabel statis global diangga
 Kenapa butuh lazy_static? Di Rust, variabel statis harus bisa dievaluasi saat waktu kompilasi (compile-time). Namun, tipe data seperti Vec atau DashMap butuh alokasi memori di heap yang hanya bisa terjadi saat program berjalan (runtime). lazy_static mengizinkan kita menginisialisasi variabel kompleks ini secara "malas" (hanya saat pertama kali diakses) sambil tetap menjamin bahwa proses tersebut aman secara thread-safe.
 
 #### Reflection Subscriber-2
+1. Ya, saya sempat melihat-lihat isi src/lib.rs. Di sana saya belajar bagaimana Rust mengorganisir modul. lib.rs berperan sebagai "jembatan" atau crate root yang mendefinisikan modul-modul apa saja yang tersedia (seperti models, services, dll) agar bisa diakses oleh main.rs. Saya juga melihat bagaimana struktur data seperti Notification didefinisikan secara terpusat agar konsisten saat digunakan di berbagai layer, mulai dari repository sampai ke controller. Mengerti lib.rs membantu saya paham alur dependency di dalam project Rust ini.
+
+2. Observer Pattern sangat mempermudah penambahan subscriber baru karena adanya loose coupling (keterkaitan yang longgar). Si Main app (Publisher) tidak perlu tahu detail teknis dari setiap Receiver. Dia hanya perlu menyimpan daftar URL subscriber. Jadi, mau kita jalankan 3, 10, atau 100 instance Receiver pun, kita tinggal memanggil endpoint /subscribe tanpa perlu mengubah satu baris kode pun di sisi Publisher.
+
+Bagaimana jika ada lebih dari satu Main app?
+Nah, ini akan sedikit lebih menantang. Kalau ada banyak Main app, sistem akan menjadi distributed system. Kita harus memastikan:
+
+Receiver tahu harus mendaftar ke Main app yang mana.
+
+Perlu ada mekanisme sinkronisasi kalau kita ingin semua Main app punya daftar subscriber yang sama.
+Secara teori masih bisa ditambahkan ke sistem, tapi kompleksitasnya meningkat karena kita harus menangani masalah konsistensi data antar Publisher.
+
+3. Saya mencoba merapikan koleksi Postman dengan menambahkan deskripsi di setiap request dan mengatur environment variables (seperti base_url). Hal ini sangat berguna, terutama untuk:
+
+Dokumentasi Diri Sendiri: Supaya nggak lupa fungsi masing-masing endpoint dan payload JSON-nya.
+
+Kerja Kelompok (Group Project): Teman satu tim bisa langsung pakai koleksi tersebut tanpa harus menebak-nebak cara kerja API yang saya buat.
+Untuk automated tests di Rust, ini sangat krusial untuk memastikan bahwa saat kita melakukan refactoring (misal: menyederhanakan kode match menjadi .map()), fungsi utamanya tidak rusak.
